@@ -21,6 +21,6 @@ class ArticlesRepositoryImpl @Inject constructor(
 ) : ArticlesRepository {
     override suspend fun getArticleList(): List<ArticleItemUiModel> =
         withContext(defaultDispatcher) {
-            api.getItems(page = 1, perPage = 20).map { it.convertToArticleItemUiModel() }
+            api.getItems(page = 1, perPage = 50).map { it.convertToArticleItemUiModel() }
         }
 }

@@ -1,28 +1,34 @@
 package com.example.qiitafetcher.ui
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.qiitafetcher.data.model.Article
-import com.example.qiitafetcher.ui.uiModel.ArticleItemUiModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun QiitaRout(articleList: List<ArticleItemUiModel>?, modifier: Modifier = Modifier) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp) // パディングを追加
-    ) {
+fun QiitaRout(viewModel: ArticlesViewModel, modifier: Modifier = Modifier) {
 
-        articleList?.forEach { article ->
-            item {
-                ArticleItem(article = article)
-            }
-        } ?: item { Text(text = "記事がありません") }
+    // todo 仮
+    LaunchedEffect(Unit) {
+        viewModel.getArticleList()
+    }
+
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when (state) {
+        is ArticlesUiState.Error -> TODO()
+        is ArticlesUiState.Fetched -> {
+            ArticleList(articles = (state as ArticlesUiState.Fetched).articles)
+        }
+
+        else -> {/* 何もしない */
+        }
+    }
+
+    /** 更新中表示 */
+    if (state is Loading) {
+//        todo LoadingScreen
     }
 }
 

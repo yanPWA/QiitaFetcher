@@ -26,7 +26,7 @@ data class Article(
     val reactionsCount: Int?,
     @SerialName("stocks_count")
     val stocksCount: Int?,
-    val tags: List<Tags?>?,
+    val tags: List<Tags>?,
     val title: String?,
     @SerialName("updated_at")
     val updatedAt: String?,
@@ -56,7 +56,7 @@ data class Group(
 
 @Serializable
 data class Tags(
-    val name: String?,
+    val name: String,
     val versions: List<String>?
 )
 
@@ -101,7 +101,7 @@ data class TeamMembership(
  */
 internal fun Article.convertToArticleItemUiModel(): ArticleItemUiModel {
     return ArticleItemUiModel(
-        imageUrl = user?.profileImageUrl ?: "",
+        imageUrl = user?.profileImageUrl,
         userName = user?.id ?: "",
         updatedAt = updatedAt ?: "",
         title = title ?: "",
