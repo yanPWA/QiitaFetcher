@@ -1,5 +1,6 @@
 package com.example.qiitafetcher.data.model
 
+import com.example.qiitafetcher.ui.uiModel.ArticleItemUiModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -7,7 +8,7 @@ import kotlinx.serialization.Serializable
  * 認証中のユーザーの記事
  */
 @Serializable
-data class Item(
+data class Article(
     @SerialName("rendered_body")
     val renderedBody: String?,
     val body: String?,
@@ -94,3 +95,17 @@ data class User(
 data class TeamMembership(
     val name: String?
 )
+
+/**
+ * uiModel変換
+ */
+internal fun Article.convertToArticleItemUiModel(): ArticleItemUiModel {
+    return ArticleItemUiModel(
+        imageUrl = user?.profileImageUrl ?: "",
+        userName = user?.id ?: "",
+        updatedAt = updatedAt ?: "",
+        title = title ?: "",
+        tags = tags,
+        likesCount = likesCount ?: 0
+    )
+}
