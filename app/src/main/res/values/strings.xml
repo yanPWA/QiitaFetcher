@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">QiitaFetcher</string>
+    <string name="no_article_message">記事はありません</string>
+    <string name="retry_message">再取得する</string>
 </resources>

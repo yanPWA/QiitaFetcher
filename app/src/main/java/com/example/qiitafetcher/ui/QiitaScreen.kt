@@ -17,7 +17,6 @@ fun QiitaRout(viewModel: ArticlesViewModel, modifier: Modifier = Modifier) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     when (state) {
-        is ArticlesUiState.Error -> TODO()
         is ArticlesUiState.Fetched -> {
             ArticleList(articles = (state as ArticlesUiState.Fetched).articles)
         }
@@ -26,16 +25,14 @@ fun QiitaRout(viewModel: ArticlesViewModel, modifier: Modifier = Modifier) {
         }
     }
 
+    /** エラーダイアログ表示 */
+    if (state is ArticlesUiState.Error) {
+        ErrorDialog(message = (state as ArticlesUiState.Error).message)
+        ErrorScreen(onRefresh = viewModel::getArticleList)
+    }
+
     /** 更新中表示 */
     if (state is Loading) {
-//        todo LoadingScreen
+        LoadingScreen()
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun QiitaRoutPreview() {
-//    QiitaFetcherTheme {
-//        QiitaRout("Android")
-//    }
-//}

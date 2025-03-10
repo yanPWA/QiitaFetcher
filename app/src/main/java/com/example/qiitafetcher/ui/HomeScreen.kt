@@ -1,6 +1,7 @@
 package com.example.qiitafetcher.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -19,11 +20,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,12 +53,7 @@ internal fun ArticleList(articles: List<ArticleItemUiModel>, modifier: Modifier 
 
     // 記事がない場合
     if (articles.isEmpty()) {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "記事はありません")
-        }
+        NoArticle()
     }
 
     // todo 追加読み込み
@@ -152,7 +150,7 @@ private fun AccountInfo(
 /** 投稿日 */
 @Composable
 private fun PostDate(date: String, modifier: Modifier = Modifier) {
-     // todo 日付フォーマット（yyyy年mm月dd日）
+    // todo 日付フォーマット（yyyy年mm月dd日）
 
     Text(
         text = "$date に投稿",
@@ -189,6 +187,34 @@ private fun Tag(tag: Tags, modifier: Modifier = Modifier) {
             style = Tag,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+/** 記事一覧なし */
+@Composable
+internal fun NoArticle(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = stringResource(R.string.no_article_message))
+    }
+}
+
+/** エラー画面 */
+@Composable
+internal fun ErrorScreen(onRefresh: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        // todo いずれボタンカスタム
+        TextButton(onClick = { onRefresh.invoke() }) {
+            Text(
+                text = stringResource(R.string.retry_message)
+            )
+        }
     }
 }
 
