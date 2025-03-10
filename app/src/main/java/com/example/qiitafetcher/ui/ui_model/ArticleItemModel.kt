@@ -1,6 +1,6 @@
-package com.example.qiitafetcher.ui.uiModel
+package com.example.qiitafetcher.ui.ui_model
 
-import com.example.qiitafetcher.data.model.Tags
+import com.example.qiitafetcher.domain.model.Tags
 
 /**
  * Qiita記事一覧で表示する情報

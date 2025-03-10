@@ -1,6 +1,6 @@
 package com.example.qiitafetcher.di
 
-import com.example.qiitafetcher.network.AppInterceptor
+import com.example.qiitafetcher.data.AppInterceptor
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class NetworkModule {
+abstract class ApiModule {
 
     @Singleton
     @Binds

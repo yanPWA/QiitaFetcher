@@ -1,6 +1,6 @@
-package com.example.qiitafetcher.data.model
+package com.example.qiitafetcher.domain.model
 
-import com.example.qiitafetcher.ui.uiModel.ArticleItemUiModel
+import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

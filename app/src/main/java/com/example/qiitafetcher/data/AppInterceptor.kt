@@ -1,6 +1,5 @@
-package com.example.qiitafetcher.network
+package com.example.qiitafetcher.data
 
-import android.util.Log
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Response

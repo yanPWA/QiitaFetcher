@@ -1,6 +1,6 @@
-package com.example.qiitafetcher.network
+package com.example.qiitafetcher.data.api
 
-import com.example.qiitafetcher.data.model.Article
+import com.example.qiitafetcher.domain.model.Article
 import retrofit2.http.GET
 import retrofit2.http.Query
 

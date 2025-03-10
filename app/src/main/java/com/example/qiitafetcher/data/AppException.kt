@@ -1,9 +1,9 @@
-package com.example.qiitafetcher.network
+package com.example.qiitafetcher.data
 
 import java.io.IOException
 
 /**
- * エラーをラップするクラス
+ * エラーをラップするクラス　todo exception周りはもっと改善したい
  */
 data class AppException(
     override val message: String?,

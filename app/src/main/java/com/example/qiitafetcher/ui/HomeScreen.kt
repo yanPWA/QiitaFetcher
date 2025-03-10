@@ -29,9 +29,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.qiitafetcher.R
-import com.example.qiitafetcher.ui.uiModel.ArticleItemUiModel
+import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.qiitafetcher.data.model.Tags
+import com.example.qiitafetcher.domain.model.Tags
 
 //
 ///**

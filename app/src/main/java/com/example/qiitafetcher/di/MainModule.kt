@@ -1,7 +1,7 @@
 package com.example.qiitafetcher.di
 
-import com.example.qiitafetcher.network.AppInterceptor
-import com.example.qiitafetcher.network.QiitaService
+import com.example.qiitafetcher.data.AppInterceptor
+import com.example.qiitafetcher.data.api.QiitaService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides

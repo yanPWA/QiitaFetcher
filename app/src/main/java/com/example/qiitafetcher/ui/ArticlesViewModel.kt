@@ -3,7 +3,7 @@ package com.example.qiitafetcher.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qiitafetcher.data.repository.ArticlesRepository
-import com.example.qiitafetcher.ui.uiModel.ArticleItemUiModel
+import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
