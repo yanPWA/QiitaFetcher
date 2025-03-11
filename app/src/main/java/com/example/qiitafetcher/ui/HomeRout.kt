@@ -1,7 +1,6 @@
 package com.example.qiitafetcher.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -22,6 +21,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,17 +35,52 @@ import coil.compose.AsyncImage
 import com.example.qiitafetcher.R
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.example.qiitafetcher.domain.model.Tags
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
-//
-///**
-// * ホームタブ（将来的にタブを増やす）
-// */
-//@Composable
-//internal fun HomeScreen() {
-//
-//}
-//
+
+/**
+ * ホームタブ（将来的にタブを増やす）
+ */
+@Composable
+internal fun HomeRout(
+    navController: NavController,
+    viewModel: ArticlesViewModel,
+    modifier: Modifier = Modifier
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // タブ表示時に一覧取得
+    LaunchedEffect(Unit) {
+        viewModel.getArticleList()
+    }
+
+    when (state) {
+        is ArticlesUiState.Fetched -> {
+            ArticleList(articles = (state as ArticlesUiState.Fetched).articles)
+        }
+
+        else -> {/* 何もしない */
+        }
+    }
+
+    /** エラーダイアログ表示 */
+    if (state is ArticlesUiState.Error) {
+        ErrorDialog(message = (state as ArticlesUiState.Error).message)
+        ErrorScreen(onRefresh = viewModel::getArticleList)
+    }
+
+    /** 更新中表示 */
+    if (state is Loading) {
+        LoadingScreen()
+    }
+
+}
+
 /**
  * Qiita記事一覧
  */
@@ -150,12 +186,17 @@ private fun AccountInfo(
 /** 投稿日 */
 @Composable
 private fun PostDate(date: String, modifier: Modifier = Modifier) {
-    // todo 日付フォーマット（yyyy年mm月dd日）
+    val parsedDate = OffsetDateTime.parse(date)
+    val formattedDate = parsedDate.format(DateFormatter.DATE_FORMAT)
 
     Text(
-        text = "$date に投稿",
+        text = "$formattedDate に投稿",
         style = Date
     )
+}
+
+object DateFormatter {
+    val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日", Locale.JAPAN)
 }
 
 /** タグ */

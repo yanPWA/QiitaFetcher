@@ -1,38 +1,42 @@
 package com.example.qiitafetcher.ui
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.qiitafetcher.ui.navigation.BottomNavigation
+import com.example.qiitafetcher.ui.navigation.Route
+import com.example.qiitafetcher.ui.theme.QiitaFetcherTheme
 
 @Composable
 fun QiitaRout(viewModel: ArticlesViewModel, modifier: Modifier = Modifier) {
+    val navController = rememberNavController()
 
-    // todo 仮
-    LaunchedEffect(Unit) {
-        viewModel.getArticleList()
-    }
-
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-    when (state) {
-        is ArticlesUiState.Fetched -> {
-            ArticleList(articles = (state as ArticlesUiState.Fetched).articles)
+    QiitaFetcherTheme {
+        // todo
+        Scaffold(
+            bottomBar = { BottomNavigation(navController) }) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = Route.Home.route,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable(route = Route.Home.route) {
+                    HomeRout(navController, viewModel)
+                }
+//                composable(route = Route.Search.route) {
+//                    SearchScreen(navController)
+//                }
+//                composable(route = Route.Favorite.route) {
+//                    FavoriteScreen(navController)
+//                }
+//                composable(route = Route.Detail.route) {
+//                    DetailScreen(navController)
+//                }
+            }
         }
-
-        else -> {/* 何もしない */
-        }
-    }
-
-    /** エラーダイアログ表示 */
-    if (state is ArticlesUiState.Error) {
-        ErrorDialog(message = (state as ArticlesUiState.Error).message)
-        ErrorScreen(onRefresh = viewModel::getArticleList)
-    }
-
-    /** 更新中表示 */
-    if (state is Loading) {
-        LoadingScreen()
     }
 }
