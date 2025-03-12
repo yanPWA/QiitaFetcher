@@ -1,9 +1,5 @@
 package com.example.qiitafetcher.ui.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -11,27 +7,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun BottomNavigation(navController: NavController){
-    val items = listOf(
-        BottomNavItem.Home,
-        BottomNavItem.Favorite,
-        BottomNavItem.Search
-    )
-
+fun BottomNavigation(navController: NavController) {
     NavigationBar {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
-        items.forEach { item ->
+        bottomNavItems.forEach { item ->
             NavigationBarItem(
-                icon = { Icon(item.icon, contentDescription = item.title) },
+                icon = {
+                    Icon(
+                        painter = painterResource(item.iconResId),
+                        contentDescription = item.title
+                    )
+                },
                 label = { Text(item.title) },
                 selected = currentRoute == item.route,
-                // todo コピペしただけなのでこれでいいのか要確認
                 onClick = {
                     navController.navigate(item.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -44,10 +40,4 @@ fun BottomNavigation(navController: NavController){
             )
         }
     }
-}
-
-sealed class BottomNavItem(val route: String, val icon: ImageVector, val title: String) {
-    data object Home : BottomNavItem("home", Icons.Default.Home, "Home")
-    data object Favorite:BottomNavItem("favorite",Icons.Default.Favorite, "Favorite")
-    data object Search : BottomNavItem("search", Icons.Default.Search, "Search")
 }

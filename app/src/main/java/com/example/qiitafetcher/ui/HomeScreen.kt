@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,7 +40,8 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.qiitafetcher.R
 import com.example.qiitafetcher.domain.model.Tags
-import com.example.qiitafetcher.ui.navigation.Route
+import com.example.qiitafetcher.ui.UiUtils.showToast
+import com.example.qiitafetcher.ui.navigation.Routes
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -140,7 +142,7 @@ internal fun ArticleItem(
                 // 原因：ナビゲーション引数として URL を渡す際に、URL に / が含まれていると、ナビゲーションライブラリが URL をルートの一部として解釈してしまい、正しいルートにマッチしなくなる
                 // 対応方法：URL をエンコードして渡す
                 val encodedUrl = URLEncoder.encode(article.url, StandardCharsets.UTF_8.toString())
-                navController.navigate(Route.Detail.createRoute(encodedUrl))
+                navController.navigate(Routes.Detail.createRoute(encodedUrl))
             }
     ) {
         Column(
@@ -180,6 +182,8 @@ private fun AccountInfo(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val context = LocalContext.current
+
         // todo 表示されない画像データがありそう。要調査（電気通信主任技術者試験（伝搬交換）に挑戦）
         // アイコン
         AsyncImage(
@@ -202,6 +206,16 @@ private fun AccountInfo(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = Account
+        )
+
+        Spacer(modifier = modifier.weight(1f))
+        Icon(
+            painter = painterResource(id = R.drawable.bookmark),
+            contentDescription = null,
+            modifier = modifier.clickable {
+                // todo 保存タブリストに追加。一旦仮でトースト表示
+                showToast(context = context, message = "保存しました")
+            }
         )
     }
 }
@@ -280,6 +294,15 @@ internal fun ErrorScreen(onRefresh: () -> Unit) {
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AccountInfoPreview() {
+    AccountInfo(
+        imageUrl = null,
+        accountName = "yanPyanPyanP"
+    )
 }
 
 @Preview(showBackground = true)
