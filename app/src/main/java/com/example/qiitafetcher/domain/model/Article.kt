@@ -106,6 +106,8 @@ internal fun Article.convertToArticleItemUiModel(): ArticleItemUiModel {
         updatedAt = updatedAt ?: "",
         title = title ?: "",
         tags = tags,
-        likesCount = likesCount ?: 0
+        likesCount = likesCount ?: 0,
+        /** 詳細表示用のURL */
+        url = this.url ?: ""
     )
 }

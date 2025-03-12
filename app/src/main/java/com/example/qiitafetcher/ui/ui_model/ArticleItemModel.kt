@@ -12,4 +12,5 @@ data class ArticleItemUiModel(
     val title: String,
     val tags: List<Tags>?,
     val likesCount: Int,
+    val url: String
 )

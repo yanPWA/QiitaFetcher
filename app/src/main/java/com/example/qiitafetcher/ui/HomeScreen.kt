@@ -1,6 +1,7 @@
 package com.example.qiitafetcher.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -26,25 +27,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import com.example.qiitafetcher.R
-import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.qiitafetcher.R
 import com.example.qiitafetcher.domain.model.Tags
+import com.example.qiitafetcher.ui.navigation.Route
+import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 
 /**
- * ホームタブ（将来的にタブを増やす）
+ * ホームタブ
  */
 @Composable
 internal fun HomeRout(
@@ -61,7 +66,10 @@ internal fun HomeRout(
 
     when (state) {
         is ArticlesUiState.Fetched -> {
-            ArticleList(articles = (state as ArticlesUiState.Fetched).articles)
+            ArticleList(
+                articles = (state as ArticlesUiState.Fetched).articles,
+                navController = navController
+            )
         }
 
         else -> {/* 何もしない */
@@ -85,7 +93,11 @@ internal fun HomeRout(
  * Qiita記事一覧
  */
 @Composable
-internal fun ArticleList(articles: List<ArticleItemUiModel>, modifier: Modifier = Modifier) {
+internal fun ArticleList(
+    articles: List<ArticleItemUiModel>,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
 
     // 記事がない場合
     if (articles.isEmpty()) {
@@ -102,7 +114,7 @@ internal fun ArticleList(articles: List<ArticleItemUiModel>, modifier: Modifier 
 
         articles.forEach { article ->
             item {
-                ArticleItem(article = article)
+                ArticleItem(article = article, navController = navController)
             }
         }
     }
@@ -112,13 +124,24 @@ internal fun ArticleList(articles: List<ArticleItemUiModel>, modifier: Modifier 
  * Qiita記事セル
  */
 @Composable
-internal fun ArticleItem(modifier: Modifier = Modifier, article: ArticleItemUiModel) {
+internal fun ArticleItem(
+    modifier: Modifier = Modifier,
+    article: ArticleItemUiModel,
+    navController: NavController
+) {
     Card(
         modifier = Modifier
             .padding(vertical = 8.dp, horizontal = 5.dp)
             .fillMaxWidth()
             .wrapContentHeight()
             .background(color = Color.Black, shape = RoundedCornerShape(20.dp))
+            .clickable {
+                // エラー：java.lang.IllegalArgumentException: Navigation destination that matches route detail/{url}/https://qiita.com/alexamaximize/items/7e880a70dc689825c52d cannot be found in the navigation graph ComposeNavGraph(0x0) startDestination={Destination(0x78d845ec) route=home}
+                // 原因：ナビゲーション引数として URL を渡す際に、URL に / が含まれていると、ナビゲーションライブラリが URL をルートの一部として解釈してしまい、正しいルートにマッチしなくなる
+                // 対応方法：URL をエンコードして渡す
+                val encodedUrl = URLEncoder.encode(article.url, StandardCharsets.UTF_8.toString())
+                navController.navigate(Route.Detail.createRoute(encodedUrl))
+            }
     ) {
         Column(
             modifier = Modifier
@@ -262,8 +285,10 @@ internal fun ErrorScreen(onRefresh: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun ArticleListPreview() {
-    ArticleList(articles = createArticles())
-//    ArticleList(articles = emptyList())
+    ArticleList(
+        navController = NavController(LocalContext.current),
+        articles = createArticles()
+    )
 }
 
 @Preview(showBackground = true)
@@ -280,7 +305,8 @@ private fun createArticles(): List<ArticleItemUiModel> {
             updatedAt = "2023-09-01",
             title = "タイトル$index",
             tags = createTags(),
-            likesCount = index
+            likesCount = index,
+            url = ""
         )
     }
 }
