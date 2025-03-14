@@ -35,13 +35,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.qiitafetcher.R
 import com.example.qiitafetcher.domain.model.Tags
+import com.example.qiitafetcher.navigation.navigateToDetail
 import com.example.qiitafetcher.ui.UiUtils.showToast
-import com.example.qiitafetcher.ui.navigation.Routes
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -49,15 +50,14 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-
 /**
  * ホームタブ
  */
 @Composable
 internal fun HomeRout(
     navController: NavController,
-    viewModel: ArticlesViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -74,8 +74,7 @@ internal fun HomeRout(
             )
         }
 
-        else -> {/* 何もしない */
-        }
+        else -> {/* 何もしない */ }
     }
 
     /** エラーダイアログ表示 */
@@ -142,7 +141,7 @@ internal fun ArticleItem(
                 // 原因：ナビゲーション引数として URL を渡す際に、URL に / が含まれていると、ナビゲーションライブラリが URL をルートの一部として解釈してしまい、正しいルートにマッチしなくなる
                 // 対応方法：URL をエンコードして渡す
                 val encodedUrl = URLEncoder.encode(article.url, StandardCharsets.UTF_8.toString())
-                navController.navigate(Routes.Detail.createRoute(encodedUrl))
+                navController.navigateToDetail(url = encodedUrl)
             }
     ) {
         Column(

@@ -1,12 +1,5 @@
-package com.example.qiitafetcher.ui.navigation
+package com.example.qiitafetcher.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import com.example.qiitafetcher.R
 
 /**
@@ -29,12 +22,3 @@ val bottomNavItems = listOf(
     BottomNavItems.Search,
     BottomNavItems.Settings
 )
-
-/**
- * 画面遷移先
- */
-sealed class Routes(val route: String) {
-    data object Detail : Routes("detail/{url}") {
-        fun createRoute(url: String) = "detail/$url"
-    }
-}
