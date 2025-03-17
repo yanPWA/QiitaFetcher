@@ -24,9 +24,7 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
     private val _uiEvent: MutableStateFlow<List<ArticlesUiEvent>> = MutableStateFlow(emptyList())
     internal val uiEvent: Flow<ArticlesUiEvent?> get() = _uiEvent.map { it.firstOrNull() }
 
-    private fun currentState(): ArticlesUiState {
-        return uiState.value
-    }
+    private fun currentState(): ArticlesUiState =  uiState.value
 
     // 読み込み重複制御用
     private var isLoading = false

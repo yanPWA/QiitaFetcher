@@ -16,7 +16,8 @@ const val ARTICLES_PER_PAGE = 20
 interface ArticlesRepository {
     suspend fun getArticleList(
         page: Int,
-        perPage: Int = ARTICLES_PER_PAGE
+        perPage: Int = ARTICLES_PER_PAGE,
+        query: String? = null
     ): List<ArticleItemUiModel>
 }
 
@@ -24,8 +25,16 @@ class ArticlesRepositoryImpl @Inject constructor(
     private val api: QiitaService.ItemsApi,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ArticlesRepository {
-    override suspend fun getArticleList(page: Int, perPage: Int): List<ArticleItemUiModel> =
+    override suspend fun getArticleList(
+        page: Int,
+        perPage: Int,
+        query: String?
+    ): List<ArticleItemUiModel> =
         withContext(defaultDispatcher) {
-            api.getItems(page = page, perPage = perPage).map { it.convertToArticleItemUiModel() }
+            api.getItems(
+                page = page,
+                perPage = perPage,
+                query = query
+            ).map { it.convertToArticleItemUiModel() }
         }
 }

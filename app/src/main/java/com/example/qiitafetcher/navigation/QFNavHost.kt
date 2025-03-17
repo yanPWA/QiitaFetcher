@@ -6,12 +6,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.qiitafetcher.ui.home.HomeRout
+import com.example.qiitafetcher.ui.search.SearchRout
 
 @Composable
 fun QFNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    // todo ツールバー表示させる
     NavHost(
         navController = navController,
         startDestination = BottomNavItems.Home.route,
@@ -25,9 +27,9 @@ fun QFNavHost(
 //                            SaveScreen(navController)
 //                        }
 //
-//                        composable(route = Route.Search.route) {
-//                            SearchScreen(navController)
-//                        }
+        composable(route = BottomNavItems.Search.route) {
+            SearchRout(navController)
+        }
 
 //                        todo ダークモード 、 ライトモード対応 、 アプリバージョン
 //                        composable(route = Route.Settings.route) {

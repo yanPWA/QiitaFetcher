@@ -14,7 +14,9 @@ class QiitaService {
             /** ページ番号 */
             @Query("page") page: Int,
             /** 1ページあたりに含まれる要素数 */
-            @Query("per_page") perPage: Int
+            @Query("per_page") perPage: Int,
+            /** 検索ワード */
+            @Query("query") query: String?
         ): List<Article>
     }
 }
