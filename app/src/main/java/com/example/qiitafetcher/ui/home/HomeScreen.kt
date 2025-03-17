@@ -61,8 +61,6 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-const val ARTICLES_PAGE_INITIAL = 1
-
 /**
  * ホームタブ
  */

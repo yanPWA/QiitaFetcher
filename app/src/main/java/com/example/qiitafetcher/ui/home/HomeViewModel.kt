@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+const val ARTICLES_PAGE_INITIAL = 1
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: ArticlesRepository) :
     ViewModel() {
@@ -25,6 +27,9 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
     private fun currentState(): ArticlesUiState {
         return uiState.value
     }
+
+    // 読み込み重複制御用
+    private var isLoading = false
 
     /**
      * uiStateの更新
@@ -51,6 +56,10 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
      * 記事一覧取得
      */
     internal fun getArticleList() = viewModelScope.launch {
+        // 重複制御
+        if (isLoading) return@launch
+        isLoading = true
+
         notifyUiState(state = ArticlesUiState.Fetching)
         runCatching {
             repository.getArticleList(page = ARTICLES_PAGE_INITIAL)
@@ -59,6 +68,8 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
         }.onFailure {
             notifyUiState(ArticlesUiState.InitialLoadError())
             notifyUiEvent(ArticlesUiEvent.Error(message = it.message ?: "エラーが発生しました"))
+        }.also {
+            isLoading = false
         }
     }
 
@@ -66,6 +77,10 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
      * 記事一覧追加読み込み
      */
     internal fun getMoreArticleList() = viewModelScope.launch {
+        // 重複制御
+        if (isLoading) return@launch
+        isLoading = true
+
         val currentState = currentState() as? ArticlesUiState.Fetched ?: return@launch
         val nextPage = currentState.page + 1
         notifyUiState(
@@ -105,6 +120,8 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
                 )
             )
             notifyUiEvent(ArticlesUiEvent.Error(message = it.message ?: "エラーが発生しました"))
+        }.also {
+            isLoading = false
         }
     }
 }
