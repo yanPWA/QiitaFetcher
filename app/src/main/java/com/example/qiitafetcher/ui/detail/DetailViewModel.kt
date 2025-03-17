@@ -1,4 +1,4 @@
-package com.example.qiitafetcher.ui
+package com.example.qiitafetcher.ui.detail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

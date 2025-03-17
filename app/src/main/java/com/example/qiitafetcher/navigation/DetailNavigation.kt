@@ -3,7 +3,7 @@ package com.example.qiitafetcher.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.example.qiitafetcher.ui.DetailScreen
+import com.example.qiitafetcher.ui.detail.DetailScreen
 import kotlinx.serialization.Serializable
 
 @Serializable

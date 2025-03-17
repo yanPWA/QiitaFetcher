@@ -1,4 +1,4 @@
-package com.example.qiitafetcher.ui
+package com.example.qiitafetcher.ui.detail
 
 import android.webkit.WebView
 import android.webkit.WebViewClient

@@ -1,4 +1,4 @@
-package com.example.qiitafetcher.ui
+package com.example.qiitafetcher.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,6 +46,11 @@ import coil.compose.AsyncImage
 import com.example.qiitafetcher.R
 import com.example.qiitafetcher.domain.model.Tags
 import com.example.qiitafetcher.navigation.navigateToDetail
+import com.example.qiitafetcher.ui.Account
+import com.example.qiitafetcher.ui.Date
+import com.example.qiitafetcher.ui.ErrorDialog
+import com.example.qiitafetcher.ui.LoadingScreen
+import com.example.qiitafetcher.ui.Title
 import com.example.qiitafetcher.ui.UiUtils.showToast
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -307,7 +312,7 @@ private fun Tag(tag: Tags, modifier: Modifier = Modifier) {
         Text(
             text = tag.name,
             color = Color.White,
-            style = Tag,
+            style = com.example.qiitafetcher.ui.Tag,
             textAlign = TextAlign.Center
         )
     }

@@ -1,4 +1,4 @@
-package com.example.qiitafetcher.ui
+package com.example.qiitafetcher.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
