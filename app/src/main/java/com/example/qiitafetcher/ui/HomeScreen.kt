@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -24,7 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,11 +48,15 @@ import com.example.qiitafetcher.domain.model.Tags
 import com.example.qiitafetcher.navigation.navigateToDetail
 import com.example.qiitafetcher.ui.UiUtils.showToast
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+const val ARTICLES_PAGE_INITIAL = 1
 
 /**
  * ホームタブ
@@ -60,6 +68,7 @@ internal fun HomeRout(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiEvent by viewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
 
     // タブ表示時に一覧取得
     LaunchedEffect(Unit) {
@@ -69,25 +78,33 @@ internal fun HomeRout(
     when (state) {
         is ArticlesUiState.Fetched -> {
             ArticleList(
+                isAppending = (state as ArticlesUiState.Fetched).isAppending,
                 articles = (state as ArticlesUiState.Fetched).articles,
-                navController = navController
+                navController = navController,
+                onLoadMore = viewModel::getMoreArticleList,
             )
         }
 
-        else -> {/* 何もしない */ }
-    }
+        is ArticlesUiState.InitialLoadError -> {
+            ErrorScreen(onRefresh = viewModel::getArticleList)
+        }
 
-    /** エラーダイアログ表示 */
-    if (state is ArticlesUiState.Error) {
-        ErrorDialog(message = (state as ArticlesUiState.Error).message)
-        ErrorScreen(onRefresh = viewModel::getArticleList)
+        else -> {/* 何もしない */
+        }
     }
 
     /** 更新中表示 */
     if (state is Loading) {
-        LoadingScreen()
+        LoadingScreen(modifier = Modifier.fillMaxSize())
     }
 
+    /** エラーダイアログ表示 */
+    if (uiEvent is ArticlesUiEvent.Error) {
+        ErrorDialog(
+            message = (uiEvent as ArticlesUiEvent.Error).message,
+            onDismiss = { viewModel.processedUiEvent(event = uiEvent as ArticlesUiEvent.Error) }
+        )
+    }
 }
 
 /**
@@ -95,27 +112,56 @@ internal fun HomeRout(
  */
 @Composable
 internal fun ArticleList(
-    articles: List<ArticleItemUiModel>,
     navController: NavController,
+    isAppending: Boolean,
+    articles: List<ArticleItemUiModel>,
+    onLoadMore: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val listState = rememberLazyListState()
+
+    // 一番下までスクロールされたかどうかを監視
+    val isReachedBottom by remember {
+        derivedStateOf {
+            val layoutInfo = listState.layoutInfo
+            val visibleItemsInfo = layoutInfo.visibleItemsInfo
+            if (layoutInfo.totalItemsCount == 0) {
+                false
+            } else {
+                val lastVisibleItem = visibleItemsInfo.lastOrNull()
+                lastVisibleItem?.index == layoutInfo.totalItemsCount - 1
+            }
+        }
+    }
+
+    // 一番下までスクロールされたら追加読み込み
+    LaunchedEffect(isReachedBottom) {
+        snapshotFlow { isReachedBottom }
+            .distinctUntilChanged()
+            .filter { it }
+            .collect { onLoadMore() }
+    }
 
     // 記事がない場合
     if (articles.isEmpty()) {
         NoArticle()
     }
 
-    // todo 追加読み込み
     LazyColumn(
+        state = listState,
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp) // パディングを追加
+            .padding(16.dp)
     ) {
         item { Spacer(modifier = modifier.height(20.dp)) }
 
-        articles.forEach { article ->
+        items(articles.size) { index ->
+            ArticleItem(article = articles[index], navController = navController)
+        }
+
+        if (isAppending) {
             item {
-                ArticleItem(article = article, navController = navController)
+                LoadingScreen(modifier = modifier.fillMaxWidth())
             }
         }
     }
@@ -137,10 +183,8 @@ internal fun ArticleItem(
             .wrapContentHeight()
             .background(color = Color.Black, shape = RoundedCornerShape(20.dp))
             .clickable {
-                // エラー：java.lang.IllegalArgumentException: Navigation destination that matches route detail/{url}/https://qiita.com/alexamaximize/items/7e880a70dc689825c52d cannot be found in the navigation graph ComposeNavGraph(0x0) startDestination={Destination(0x78d845ec) route=home}
-                // 原因：ナビゲーション引数として URL を渡す際に、URL に / が含まれていると、ナビゲーションライブラリが URL をルートの一部として解釈してしまい、正しいルートにマッチしなくなる
-                // 対応方法：URL をエンコードして渡す
-                val encodedUrl = URLEncoder.encode(article.url, StandardCharsets.UTF_8.toString())
+                val encodedUrl =
+                    URLEncoder.encode(article.url, StandardCharsets.UTF_8.toString())
                 navController.navigateToDetail(url = encodedUrl)
             }
     ) {
@@ -232,7 +276,8 @@ private fun PostDate(date: String, modifier: Modifier = Modifier) {
 }
 
 object DateFormatter {
-    val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日", Locale.JAPAN)
+    val DATE_FORMAT: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy年MM月dd日", Locale.JAPAN)
 }
 
 /** タグ */
@@ -243,6 +288,7 @@ private fun Tags(tags: List<Tags>?, modifier: Modifier = Modifier) {
     FlowRow(
         modifier = Modifier.padding(top = 12.dp)
     ) {
+        // todo tag押下で検索できるように
         tags.forEach { tag -> Tag(tag = tag) }
     }
 }
@@ -280,17 +326,16 @@ internal fun NoArticle(modifier: Modifier = Modifier) {
 
 /** エラー画面 */
 @Composable
-internal fun ErrorScreen(onRefresh: () -> Unit) {
+internal fun ErrorScreen(
+    onRefresh: () -> Unit
+) {
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         // todo いずれボタンカスタム
         TextButton(onClick = { onRefresh.invoke() }) {
-            Text(
-                text = stringResource(R.string.retry_message)
-            )
+            Text(text = stringResource(R.string.retry_message))
         }
     }
 }
@@ -309,7 +354,9 @@ private fun AccountInfoPreview() {
 private fun ArticleListPreview() {
     ArticleList(
         navController = NavController(LocalContext.current),
-        articles = createArticles()
+        isAppending = false,
+        articles = createArticles(),
+        onLoadMore = {}
     )
 }
 

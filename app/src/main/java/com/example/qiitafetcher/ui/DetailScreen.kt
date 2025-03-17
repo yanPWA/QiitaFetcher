@@ -54,8 +54,6 @@ internal fun DetailScreen(
     modifier: Modifier = Modifier,
 ) {
     when (detailUiState) {
-        is DetailUiState.Error -> ErrorDialog(message = detailUiState.message)
-        DetailUiState.Loading -> LoadingScreen()
         is DetailUiState.WebView -> {
             DetailScreen(
                 state = detailUiState,
