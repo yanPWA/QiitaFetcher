@@ -24,7 +24,10 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
     private val _uiEvent: MutableStateFlow<List<ArticlesUiEvent>> = MutableStateFlow(emptyList())
     internal val uiEvent: Flow<ArticlesUiEvent?> get() = _uiEvent.map { it.firstOrNull() }
 
-    private fun currentState(): ArticlesUiState =  uiState.value
+    private fun currentState(): ArticlesUiState = uiState.value
+
+    // 初回取得フラグ
+    private var isFirstLoad = true
 
     // 読み込み重複制御用
     private var isLoading = false
@@ -54,6 +57,8 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
      * 記事一覧取得
      */
     internal fun getArticleList() = viewModelScope.launch {
+        if (!isFirstLoad) return@launch
+
         // 重複制御
         if (isLoading) return@launch
         isLoading = true
@@ -67,6 +72,7 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
             notifyUiState(ArticlesUiState.InitialLoadError())
             notifyUiEvent(ArticlesUiEvent.Error(message = it.message ?: "エラーが発生しました"))
         }.also {
+            isFirstLoad = false
             isLoading = false
         }
     }

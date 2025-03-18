@@ -47,7 +47,6 @@ internal fun HomeRout(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val uiEvent by viewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
 
-    // タブ表示時に一覧取得
     LaunchedEffect(Unit) {
         viewModel.getArticleList()
     }
