@@ -1,6 +1,5 @@
 package com.example.qiitafetcher.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -11,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 
 /**
@@ -20,8 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 internal fun LoadingScreen(modifier: Modifier= Modifier) {
     Box(
-        modifier = modifier
-            .background(Color.Black.copy(alpha = 0.5f)),
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator()

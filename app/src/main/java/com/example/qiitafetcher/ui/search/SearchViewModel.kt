@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCase) :
-    ViewModel() {
+class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCase) : ViewModel() {
+
     private val _uiState: MutableStateFlow<SearchUiState> = MutableStateFlow(SearchUiState.Init)
     internal val uiState: StateFlow<SearchUiState> = _uiState
 
@@ -28,6 +28,9 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
     internal val searchHistoryList: StateFlow<List<String>> get() = _searchHistoryList
 
     private fun currentState(): SearchUiState = uiState.value
+
+    // 初回取得フラグ
+    private var isFirstLoad = true
 
     // 読み込み重複制御用
     private var isLoading = false
@@ -57,6 +60,9 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
      * 特定のキーワードで記事一覧を取得 todo title:Git body:Ruby のような検索ワード
      */
     internal fun getArticleListByKeyword(keyword: String) = viewModelScope.launch {
+        // 初回のみ取得
+        if (!isFirstLoad) return@launch
+
         // 重複制御
         if (isLoading) return@launch
         isLoading = true
@@ -75,6 +81,7 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
             notifyUiEvent(SearchUiEvent.Error(message = it.message ?: "エラーが発生しました"))
         }.also {
             isLoading = false
+            isFirstLoad = false
         }
     }
 
@@ -141,7 +148,7 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
      * 検索履歴に追加
      */
     private fun addSearchHistory(searchText: String) {
-        // スペースで分割し、空文字を除外
+        // スペースで分割し、空文字を除外　todo 半角スペース、全角スペース両方で区切りたい
         val keywords = searchText.split(" ")
             .filter { it.isNotBlank() }
             .distinct() // 重複を削除
@@ -157,12 +164,17 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
     }
 
     /**
-     * 検索履歴から削除
+     * 検索履歴から削除 todo sharedPreferencesから削除できてない
      */
     internal fun deleteSearchHistory(searchText: String) {
         val currentList = _searchHistoryList.value.toMutableList()
         currentList.remove(searchText)
         _searchHistoryList.value = currentList.toList()
+    }
+
+    internal fun resetState() {
+        notifyUiState(state = SearchUiState.Init)
+        isFirstLoad = true
     }
 }
 

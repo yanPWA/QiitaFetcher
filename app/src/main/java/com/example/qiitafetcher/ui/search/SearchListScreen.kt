@@ -1,5 +1,6 @@
-package com.example.qiitafetcher.ui.home
+package com.example.qiitafetcher.ui.search
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,49 +19,90 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.qiitafetcher.R
 import com.example.qiitafetcher.ui.ArticleItem
 import com.example.qiitafetcher.ui.ErrorDialog
 import com.example.qiitafetcher.ui.LoadingScreen
 import com.example.qiitafetcher.ui.NoArticle
-import com.example.qiitafetcher.ui.createTags
+import com.example.qiitafetcher.ui.createArticleItem
+import com.example.qiitafetcher.ui.theme.QFTypography
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class SearchListRoute(val keyword: String = "") {
+    companion object {
+        const val ROUTE = "searchList"
+        const val KEYWORD_ARG = "keyword"
+    }
+
+    fun createRoute(): String {
+        return "$ROUTE/{$KEYWORD_ARG}"
+    }
+}
+
+fun NavController.navigateToSearchList(searchListRoute: SearchListRoute) {
+    navigate(route = "${SearchListRoute.ROUTE}/${searchListRoute.keyword}")
+}
+
+fun NavGraphBuilder.searchList(
+    navController: NavController,
+    viewModel: SearchViewModel
+) {
+    composable(
+        route = SearchListRoute().createRoute(),
+        arguments = listOf(navArgument(SearchListRoute.KEYWORD_ARG) { type = NavType.StringType })
+    ) { backStackEntry ->
+        val keyword = backStackEntry.arguments?.getString(SearchListRoute.KEYWORD_ARG) ?: ""
+
+        SearchListRout(
+            navController = navController,
+            backStackEntry = backStackEntry,
+            viewModel = viewModel,
+            keyword = keyword
+        )
+    }
+}
 
 /**
- * ホームタブ
+ * 検索結果一覧
  */
 @Composable
-internal fun HomeRout(
+internal fun SearchListRout(
     navController: NavController,
-    modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel()
+    backStackEntry: NavBackStackEntry,
+    viewModel: SearchViewModel,
+    keyword: String
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val uiEvent by viewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
 
-    LaunchedEffect(Unit) {
-        viewModel.getArticleList()
+    LaunchedEffect(keyword) {
+        viewModel.getArticleListByKeyword(keyword)
     }
 
     when (state) {
-        is ArticlesUiState.Fetched -> {
-            ArticleList(
-                isAppending = (state as ArticlesUiState.Fetched).isAppending,
-                articles = (state as ArticlesUiState.Fetched).articles,
+        is SearchUiState.Fetched -> {
+            SearchList(
                 navController = navController,
-                onLoadMore = viewModel::getMoreArticleList,
+                keyword = keyword,
+                isAppending = (state as SearchUiState.Fetched).isAppending,
+                articles = (state as SearchUiState.Fetched).articles,
+                onLoadMore = viewModel::getMoreArticleListByKeyword,
+                resetState = viewModel::resetState
             )
-        }
-
-        is ArticlesUiState.InitialLoadError -> {
-            ErrorScreen(onRefresh = viewModel::getArticleList)
         }
 
         else -> {/* 何もしない */
@@ -73,21 +115,26 @@ internal fun HomeRout(
     }
 
     /** エラーダイアログ表示 */
-    if (uiEvent is ArticlesUiEvent.Error) {
+    if (uiEvent is SearchUiEvent.Error) {
         ErrorDialog(
-            message = (uiEvent as ArticlesUiEvent.Error).message,
-            onDismiss = { viewModel.processedUiEvent(event = uiEvent as ArticlesUiEvent.Error) }
+            message = (uiEvent as SearchUiEvent.Error).message,
+            onDismiss = {
+                navController.popBackStack()
+                viewModel.processedUiEvent(event = uiEvent as SearchUiEvent.Error)
+            }
         )
     }
 }
 
-/** Qiita記事一覧 */
+/** 検索結果一覧 */
 @Composable
-private fun ArticleList(
+internal fun SearchList(
     navController: NavController,
+    keyword: String,
     isAppending: Boolean,
     articles: List<ArticleItemUiModel>,
-    onLoadMore: () -> Unit,
+    onLoadMore: (String) -> Unit,
+    resetState: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -111,7 +158,7 @@ private fun ArticleList(
         snapshotFlow { isReachedBottom }
             .distinctUntilChanged()
             .filter { it }
-            .collect { onLoadMore() }
+            .collect { onLoadMore.invoke(keyword) }
     }
 
     // 記事がない場合
@@ -125,6 +172,21 @@ private fun ArticleList(
             .fillMaxSize()
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
     ) {
+        item {
+            Text(
+                text = "←",
+                modifier = modifier
+                    .padding(vertical = 10.dp)
+                    .clickable {
+                        navController.popBackStack()
+                        resetState.invoke()
+                    },
+                style = QFTypography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
+
         items(articles.size) { index ->
             ArticleItem(article = articles[index], navController = navController)
         }
@@ -139,15 +201,16 @@ private fun ArticleList(
 
 /** エラー画面 */
 @Composable
-private fun ErrorScreen(
-    onRefresh: () -> Unit
+internal fun ErrorScreen(
+    keyword: String,
+    onRefresh: (String) -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         // todo いずれボタンカスタム
-        TextButton(onClick = { onRefresh.invoke() }) {
+        TextButton(onClick = { onRefresh.invoke(keyword) }) {
             Text(text = stringResource(R.string.retry_message))
         }
     }
@@ -155,25 +218,13 @@ private fun ErrorScreen(
 
 @Preview(showBackground = true)
 @Composable
-private fun ArticleListPreview() {
-    ArticleList(
+private fun SearchListPreview() {
+    SearchList(
         navController = NavController(LocalContext.current),
+        keyword = "Android",
         isAppending = false,
-        articles = createArticles(),
-        onLoadMore = {}
+        articles = List(10) { createArticleItem() },
+        onLoadMore = {},
+        resetState = {}
     )
-}
-
-private fun createArticles(): List<ArticleItemUiModel> {
-    return List(20) { index ->
-        ArticleItemUiModel(
-            imageUrl = null,
-            userName = "yanP$index",
-            updatedAt = "2023-09-01",
-            title = "タイトル$index",
-            tags = createTags(),
-            likesCount = index,
-            url = ""
-        )
-    }
 }

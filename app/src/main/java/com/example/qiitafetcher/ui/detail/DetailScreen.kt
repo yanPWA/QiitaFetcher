@@ -24,7 +24,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
+import androidx.navigation.compose.composable
 import com.example.qiitafetcher.R
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class DetailRoute(val url: String = "") {
+    companion object {
+        const val ROUTE = "detail"
+        const val URL_ARG = "url"
+    }
+
+    fun createRoute(): String {
+        return "$ROUTE/{$URL_ARG}"
+    }
+}
+
+fun NavController.navigateToDetail(detailRoute: DetailRoute) {
+    navigate(route = "${DetailRoute.ROUTE}/${detailRoute.url}")
+}
+
+fun NavGraphBuilder.detailScreen(
+    showBackButton: Boolean,
+    onBackClick: () -> Unit
+) {
+    composable(route = DetailRoute().createRoute()) {
+        DetailScreen(
+            showBackButton = showBackButton,
+            onBackClick = onBackClick,
+        )
+    }
+}
 
 /** 記事詳細 */
 @Composable

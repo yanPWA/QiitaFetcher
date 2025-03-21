@@ -57,6 +57,7 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
      * 記事一覧取得
      */
     internal fun getArticleList() = viewModelScope.launch {
+        // 初回のみ取得
         if (!isFirstLoad) return@launch
 
         // 重複制御

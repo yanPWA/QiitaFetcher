@@ -1,7 +1,6 @@
 package com.example.qiitafetcher.ui.search
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,42 +19,28 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.example.qiitafetcher.R
-import com.example.qiitafetcher.ui.ArticleItem
-import com.example.qiitafetcher.ui.ErrorDialog
-import com.example.qiitafetcher.ui.LoadingScreen
-import com.example.qiitafetcher.ui.NoArticle
-import com.example.qiitafetcher.ui.Tag
-import com.example.qiitafetcher.ui.Title
-import com.example.qiitafetcher.ui.dpToSp
-import com.example.qiitafetcher.ui.home.ArticlesUiEvent
-import com.example.qiitafetcher.ui.home.Loading
-import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.qiitafetcher.navigation.BottomNavItems
+import com.example.qiitafetcher.ui.theme.QFTypography
 
 /**
  * 検索タブ
@@ -65,15 +49,25 @@ import kotlinx.coroutines.flow.filter
 internal fun SearchRout(
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: SearchViewModel = hiltViewModel()
+    viewModel: SearchViewModel
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val uiEvent by viewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
     val searchHistoryList by viewModel.searchHistoryList.collectAsStateWithLifecycle()
+
+    // 現在のバックスタックエントリを取得
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    // バックスタックエントリが SearchRout に対応するものに変化した際に、viewModel.resetState() を呼び出す
+    LaunchedEffect(navBackStackEntry) {
+        if (navBackStackEntry?.destination?.route == BottomNavItems.Search.route) {
+            viewModel.resetState()
+        }
+    }
 
     when (state) {
         SearchUiState.Init -> {
             SearchScreen(
+                navController = navController,
                 searchHistoryList = searchHistoryList,
                 onSearch = viewModel::getArticleListByKeyword,
                 onDelete = viewModel::deleteSearchHistory,
@@ -81,44 +75,14 @@ internal fun SearchRout(
             )
         }
 
-        is SearchUiState.Fetched -> {
-            // todo 検索TOPへ戻れるようにする
-            SearchList(
-                keyword = (state as SearchUiState.Fetched).keyword,
-                isAppending = (state as SearchUiState.Fetched).isAppending,
-                articles = (state as SearchUiState.Fetched).articles,
-                navController = navController,
-                onLoadMore = viewModel::getMoreArticleListByKeyword,
-            )
-        }
-
-        is SearchUiState.InitialLoadError -> {
-            ErrorScreen(
-                keyword = (state as SearchUiState.InitialLoadError).keyword,
-                onRefresh = viewModel::getArticleListByKeyword
-            )
-        }
-
         else -> {/* 何もしない */
         }
-    }
-
-    /** 更新中表示 */
-    if (state is Loading) {
-        LoadingScreen(modifier = Modifier.fillMaxSize())
-    }
-
-    /** エラーダイアログ表示 */
-    if (uiEvent is SearchUiEvent.Error) {
-        ErrorDialog(
-            message = (uiEvent as ArticlesUiEvent.Error).message,
-            onDismiss = { viewModel.processedUiEvent(event = uiEvent as SearchUiEvent.Error) }
-        )
     }
 }
 
 @Composable
 private fun SearchScreen(
+    navController: NavController,
     searchHistoryList: List<String>,
     onSearch: (String) -> Unit,
     onDelete: (String) -> Unit,
@@ -129,12 +93,15 @@ private fun SearchScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Spacer(modifier = modifier.height(20.dp))
-        SearchField(onSearch = onSearch)
+        SearchField(
+            navController = navController,
+            onSearch = onSearch
+        )
         Spacer(modifier = modifier.height(20.dp))
         SearchHistory(
+            navController = navController,
             searchHistoryList = searchHistoryList,
-            onSearch = onSearch,
+            onHistorySearch = onSearch,
             onDelete = onDelete
         )
     }
@@ -143,6 +110,7 @@ private fun SearchScreen(
 /** 検索窓 */
 @Composable
 private fun SearchField(
+    navController: NavController,
     onSearch: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -152,7 +120,7 @@ private fun SearchField(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         TextField(
@@ -168,14 +136,20 @@ private fun SearchField(
             ),
             keyboardActions = KeyboardActions(
                 onSearch = {
-                    onSearch(inputText)
+                    navController.navigateToSearchList(searchListRoute = SearchListRoute(keyword = inputText))
+                    onSearch.invoke(inputText)
                     focusManager.clearFocus()
                     inputText = ""
                 }
             ),
             trailingIcon = {
                 if (inputText.isNotEmpty()) {
-                    IconButton(onClick = { inputText = "" }) {
+                    IconButton(onClick = {
+                        navController.navigateToSearchList(searchListRoute = SearchListRoute(keyword = inputText))
+                        onSearch.invoke(inputText)
+                        focusManager.clearFocus()
+                        inputText = ""
+                    }) {
                         Icon(Icons.Filled.Close, contentDescription = null)
                     }
                 }
@@ -186,6 +160,7 @@ private fun SearchField(
                 onSearch.invoke(inputText)
                 focusManager.clearFocus()
                 inputText = ""
+                navController.navigateToSearchList(searchListRoute = SearchListRoute(keyword = inputText))
             },
             modifier = modifier.padding(start = 5.dp)
         ) {
@@ -197,15 +172,16 @@ private fun SearchField(
 /** 検索履歴 */
 @Composable
 private fun SearchHistory(
+    navController: NavController,
     searchHistoryList: List<String>,
-    onSearch: (String) -> Unit,
+    onHistorySearch: (String) -> Unit,
     onDelete: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = "◽️検索履歴",
-            style = Title.copy(fontSize = dpToSp(20.dp)),
+            style = QFTypography.titleLarge,
             modifier = modifier
                 .fillMaxWidth()
                 .padding(top = 5.dp, bottom = 5.dp, end = 5.dp)
@@ -213,8 +189,9 @@ private fun SearchHistory(
         LazyColumn(modifier = modifier.fillMaxWidth()) {
             items(searchHistoryList.size) { index ->
                 SearchHistoryItem(
+                    navController = navController,
                     keyword = searchHistoryList[index],
-                    onSearch = onSearch,
+                    onHistorySearch = onHistorySearch,
                     onDelete = onDelete
                 )
 
@@ -229,21 +206,25 @@ private fun SearchHistory(
 
 @Composable
 fun SearchHistoryItem(
+    navController: NavController,
     keyword: String,
-    onSearch: (String) -> Unit,
+    onHistorySearch: (String) -> Unit,
     onDelete: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onSearch.invoke(keyword) } // クリックで再検索
+            .clickable {
+                navController.navigateToSearchList(searchListRoute = SearchListRoute(keyword = keyword))
+                onHistorySearch.invoke(keyword)
+            }
             .padding(5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = keyword,
-            style = Tag,
+            style = QFTypography.labelLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
@@ -261,92 +242,19 @@ fun SearchHistoryItem(
     }
 }
 
-/** 検索結果一覧 */
-@Composable
-internal fun SearchList(
-    navController: NavController,
-    keyword: String,
-    isAppending: Boolean,
-    articles: List<ArticleItemUiModel>,
-    onLoadMore: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val listState = rememberLazyListState()
-
-    // 一番下までスクロールされたかどうかを監視
-    val isReachedBottom by remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val visibleItemsInfo = layoutInfo.visibleItemsInfo
-            if (layoutInfo.totalItemsCount == 0) {
-                false
-            } else {
-                val lastVisibleItem = visibleItemsInfo.lastOrNull()
-                lastVisibleItem?.index == layoutInfo.totalItemsCount - 1
-            }
-        }
-    }
-
-    // 一番下までスクロールされたら追加読み込み
-    LaunchedEffect(isReachedBottom) {
-        snapshotFlow { isReachedBottom }
-            .distinctUntilChanged()
-            .filter { it }
-            .collect { onLoadMore(keyword) }
-    }
-
-    // 記事がない場合
-    if (articles.isEmpty()) {
-        NoArticle()
-    }
-
-    LazyColumn(
-        state = listState,
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        item { Spacer(modifier = modifier.height(20.dp)) }
-
-        items(articles.size) { index ->
-            ArticleItem(article = articles[index], navController = navController)
-        }
-
-        if (isAppending) {
-            item {
-                LoadingScreen(modifier = modifier.fillMaxWidth())
-            }
-        }
-    }
-}
-
-/** エラー画面 */
-@Composable
-private fun ErrorScreen(
-    keyword: String,
-    onRefresh: (String) -> Unit
-) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        // todo いずれボタンカスタム
-        TextButton(onClick = { onRefresh.invoke(keyword) }) {
-            Text(text = stringResource(R.string.retry_message))
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun SearchFieldPreview() {
-    SearchField(onSearch = {})
+    SearchField(
+        navController = NavController(LocalContext.current),
+        onSearch = {})
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun SearchScreenPreview() {
     SearchScreen(
+        navController = NavController(LocalContext.current),
         searchHistoryList = listOf("Android", "Kotlin", "Git", "Flow"),
         onSearch = {},
         onDelete = {}
@@ -357,8 +265,9 @@ private fun SearchScreenPreview() {
 @Composable
 private fun SearchHistoryItemPreview() {
     SearchHistoryItem(
+        navController = NavController(LocalContext.current),
         keyword = "Android",
-        onSearch = {},
+        onHistorySearch = {},
         onDelete = {}
     )
 }

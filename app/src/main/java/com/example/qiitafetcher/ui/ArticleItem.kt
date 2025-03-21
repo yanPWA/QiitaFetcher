@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,8 +36,10 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.qiitafetcher.R
 import com.example.qiitafetcher.domain.model.Tags
-import com.example.qiitafetcher.navigation.navigateToDetail
 import com.example.qiitafetcher.ui.UiUtils.showToast
+import com.example.qiitafetcher.ui.detail.DetailRoute
+import com.example.qiitafetcher.ui.detail.navigateToDetail
+import com.example.qiitafetcher.ui.theme.QFTypography
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -44,9 +47,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/**
- * Qiita記事セル
- */
+/** Qiita記事セル */
 @Composable
 internal fun ArticleItem(
     modifier: Modifier = Modifier,
@@ -55,20 +56,17 @@ internal fun ArticleItem(
 ) {
     Card(
         modifier = Modifier
-            .padding(vertical = 8.dp, horizontal = 5.dp)
+            .padding(bottom = 16.dp, start = 5.dp, end = 5.dp)
             .fillMaxWidth()
             .wrapContentHeight()
-            .background(color = Color.Black, shape = RoundedCornerShape(20.dp))
             .clickable {
                 val encodedUrl =
                     URLEncoder.encode(article.url, StandardCharsets.UTF_8.toString())
-                navController.navigateToDetail(url = encodedUrl)
+                navController.navigateToDetail(detailRoute = DetailRoute(url = encodedUrl))
             }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp)
+            modifier = Modifier.padding(10.dp)
         ) {
             AccountInfo(
                 modifier = Modifier,
@@ -80,7 +78,7 @@ internal fun ArticleItem(
 
             Text(
                 text = article.title,
-                style = Title,
+                style = QFTypography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -125,7 +123,7 @@ private fun AccountInfo(
             text = "@$accountName",
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = Account
+            style = QFTypography.labelLarge
         )
 
         Spacer(modifier = modifier.weight(1f))
@@ -148,7 +146,7 @@ private fun PostDate(date: String, modifier: Modifier = Modifier) {
 
     Text(
         text = "$formattedDate に投稿",
-        style = Date
+        style = QFTypography.labelMedium
     )
 }
 
@@ -183,8 +181,7 @@ private fun Tag(tag: Tags, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = tag.name,
-            color = Color.White,
-            style = com.example.qiitafetcher.ui.Tag,
+            style = QFTypography.labelLarge,
             textAlign = TextAlign.Center
         )
     }
@@ -216,6 +213,27 @@ private fun TagPreview() {
     Tags(tags = createTags())
 }
 
-fun createTags(): List<Tags> {
+@Preview(showBackground = true)
+@Composable
+internal fun ArticleItemPreview() {
+    ArticleItem(
+        article = createArticleItem(),
+        navController = NavController(LocalContext.current)
+    )
+}
+
+internal fun createTags(): List<Tags> {
     return listOf(Tags("Android", null), Tags("iOS", null), Tags("データ", null))
+}
+
+internal fun createArticleItem(): ArticleItemUiModel {
+    return ArticleItemUiModel(
+        title = "タイトル",
+        url = "",
+        imageUrl = null,
+        userName = "yanP",
+        updatedAt = "2023-09-09T00:00:00+09:00",
+        tags = createTags(),
+        likesCount = 10
+    )
 }

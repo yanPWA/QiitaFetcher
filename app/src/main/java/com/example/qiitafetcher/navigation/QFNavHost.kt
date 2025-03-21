@@ -2,18 +2,23 @@ package com.example.qiitafetcher.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.qiitafetcher.ui.detail.detailScreen
 import com.example.qiitafetcher.ui.home.HomeRout
 import com.example.qiitafetcher.ui.search.SearchRout
+import com.example.qiitafetcher.ui.search.SearchViewModel
+import com.example.qiitafetcher.ui.search.searchList
 
 @Composable
 fun QFNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    // todo ツールバー表示させる
+    val searchViewModel: SearchViewModel = hiltViewModel()
+
     NavHost(
         navController = navController,
         startDestination = BottomNavItems.Home.route,
@@ -28,15 +33,17 @@ fun QFNavHost(
 //                        }
 //
         composable(route = BottomNavItems.Search.route) {
-            SearchRout(navController)
+            SearchRout(
+                navController = navController,
+                viewModel = searchViewModel
+            )
         }
 
-//                        todo ダークモード 、 ライトモード対応 、 アプリバージョン
-//                        composable(route = Route.Settings.route) {
-//                            SettingsScreen(navController)
-//                        }
+        searchList(
+            navController = navController,
+            viewModel = searchViewModel
+        )
 
-        // ホームタブの一覧にて任意のアイテム押下で詳細遷移
         detailScreen(
             showBackButton = false,
             onBackClick = navController::popBackStack
