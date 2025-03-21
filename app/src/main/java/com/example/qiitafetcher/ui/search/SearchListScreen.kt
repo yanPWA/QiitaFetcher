@@ -7,8 +7,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -35,6 +39,7 @@ import com.example.qiitafetcher.ui.ErrorDialog
 import com.example.qiitafetcher.ui.LoadingScreen
 import com.example.qiitafetcher.ui.NoArticle
 import com.example.qiitafetcher.ui.createArticleItem
+import  androidx.compose.foundation.layout.size
 import com.example.qiitafetcher.ui.theme.QFTypography
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -173,18 +178,19 @@ internal fun SearchList(
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
     ) {
         item {
-            Text(
-                text = "←",
-                modifier = modifier
-                    .padding(vertical = 10.dp)
-                    .clickable {
-                        navController.popBackStack()
-                        resetState.invoke()
-                    },
-                style = QFTypography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
+            IconButton(
+                onClick = {
+                    navController.popBackStack()
+                    resetState.invoke()
+                },
+                modifier = modifier.padding(10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.size(30.dp)
                 )
-            )
+            }
         }
 
         items(articles.size) { index ->
