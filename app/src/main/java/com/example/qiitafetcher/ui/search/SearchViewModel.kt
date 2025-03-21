@@ -174,9 +174,8 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
      * 検索履歴から削除 todo sharedPreferencesから削除できてない
      */
     internal fun deleteSearchHistory(searchText: String) {
-        val currentList = _searchHistoryList.value.toMutableList()
-        currentList.remove(searchText)
-        _searchHistoryList.value = currentList.toList()
+        searchUseCase.deleteSearchHistory(searchText)
+        _searchHistoryList.value = searchUseCase.loadSearchHistory()
     }
 
     internal fun resetState() {

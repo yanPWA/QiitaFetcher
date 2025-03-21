@@ -12,13 +12,13 @@ class SearchUseCase @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val sharedPreferences: SharedPreferences =
-        context.getSharedPreferences("search_history", Context.MODE_PRIVATE)
+        context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     /**
      * 検索履歴の読み込み
      */
     internal fun loadSearchHistory(): List<String> {
-        return sharedPreferences.getStringSet("search_history_list", emptySet())?.toList()
+        return sharedPreferences.getStringSet(SEARCH_HISTORY_LIST_KEY, emptySet())?.toList()
             ?: emptyList()
     }
 
@@ -30,7 +30,18 @@ class SearchUseCase @Inject constructor(
         currentHistory.remove(keyword)
         currentHistory.add(0, keyword)
         val editor = sharedPreferences.edit()
-        editor.putStringSet("search_history_list", currentHistory.toSet())
+        editor.putStringSet(SEARCH_HISTORY_LIST_KEY, currentHistory.toSet())
+        editor.apply()
+    }
+
+    /**
+     * 検索履歴の削除
+     */
+    internal fun deleteSearchHistory(keyword: String) {
+        val currentHistory = loadSearchHistory().toMutableList()
+        currentHistory.remove(keyword)
+        val editor = sharedPreferences.edit()
+        editor.putStringSet(SEARCH_HISTORY_LIST_KEY, currentHistory.toSet())
         editor.apply()
     }
 
@@ -39,5 +50,10 @@ class SearchUseCase @Inject constructor(
      */
     internal suspend fun getArticleList(page: Int, query: String): List<ArticleItemUiModel> {
         return repository.getArticleList(page = page, query = query)
+    }
+
+    companion object {
+        private const val SHARED_PREFERENCES_NAME = "search_history"
+        private const val SEARCH_HISTORY_LIST_KEY = "search_history_list"
     }
 }
