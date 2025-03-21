@@ -148,8 +148,8 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
      * 検索履歴に追加
      */
     private fun addSearchHistory(searchText: String) {
-        // スペースで分割し、空文字を除外　todo 半角スペース、全角スペース両方で区切りたい
-        val keywords = searchText.split(" ")
+        // スペースで分割し、空文字を除外
+        val keywords = searchText.split(Regex("[\\s　]+"))
             .filter { it.isNotBlank() }
             .distinct() // 重複を削除
 
