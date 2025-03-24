@@ -102,6 +102,7 @@ internal fun SearchListRout(
                 keyword = keyword,
                 isAppending = (state as SearchUiState.Fetched).isAppending,
                 articles = (state as SearchUiState.Fetched).articles,
+                onSearch = viewModel::getArticleListByKeyword,
                 onLoadMore = viewModel::getMoreArticleListByKeyword,
                 resetState = viewModel::resetState
             )
@@ -135,6 +136,7 @@ internal fun SearchList(
     keyword: String,
     isAppending: Boolean,
     articles: List<ArticleItemUiModel>,
+    onSearch: (String) -> Unit,
     onLoadMore: (String) -> Unit,
     resetState: () -> Unit,
     modifier: Modifier = Modifier
@@ -177,8 +179,8 @@ internal fun SearchList(
         item {
             IconButton(
                 onClick = {
-                    navController.popBackStack()
                     resetState.invoke()
+                    navController.popBackStack()
                 },
                 modifier = modifier.padding(10.dp)
             ) {
@@ -191,7 +193,12 @@ internal fun SearchList(
         }
 
         items(articles.size) { index ->
-            ArticleItem(article = articles[index], navController = navController)
+            ArticleItem(
+                article = articles[index],
+                onSearch = onSearch,
+                resetState = resetState,
+                navController = navController
+            )
         }
 
         if (isAppending) {
@@ -227,6 +234,7 @@ private fun SearchListPreview() {
         keyword = "Android",
         isAppending = false,
         articles = List(10) { createArticleItem() },
+        onSearch = {},
         onLoadMore = {},
         resetState = {}
     )

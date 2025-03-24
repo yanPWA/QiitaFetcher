@@ -1,6 +1,6 @@
 package com.example.qiitafetcher.navigation
 
-import android.util.Log
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -9,7 +9,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.example.qiitafetcher.ui.search.SearchListRoute
 
 /**
@@ -18,7 +20,6 @@ import com.example.qiitafetcher.ui.search.SearchListRoute
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun QFTopAppBar(currentRoute: String, keyword: String) {
-    Log.d("QFTopAppBar","keyword -> $keyword")
     CenterAlignedTopAppBar(
         title = {
             when (currentRoute) {
@@ -28,6 +29,7 @@ internal fun QFTopAppBar(currentRoute: String, keyword: String) {
                 SearchListRoute().createRoute() -> {
                     Text(
                         text = keyword,
+                        modifier = Modifier.padding(start = 16.dp),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

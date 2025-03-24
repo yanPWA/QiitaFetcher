@@ -29,6 +29,7 @@ import com.example.qiitafetcher.ui.ErrorDialog
 import com.example.qiitafetcher.ui.LoadingScreen
 import com.example.qiitafetcher.ui.NoArticle
 import com.example.qiitafetcher.ui.createTags
+import com.example.qiitafetcher.ui.search.SearchViewModel
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -40,13 +41,14 @@ import kotlinx.coroutines.flow.filter
 internal fun HomeRout(
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel()
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    searchViewModel: SearchViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val uiEvent by viewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
+    val state by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val uiEvent by homeViewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
 
     LaunchedEffect(Unit) {
-        viewModel.getArticleList()
+        homeViewModel.getArticleList()
     }
 
     when (state) {
@@ -55,12 +57,14 @@ internal fun HomeRout(
                 isAppending = (state as ArticlesUiState.Fetched).isAppending,
                 articles = (state as ArticlesUiState.Fetched).articles,
                 navController = navController,
-                onLoadMore = viewModel::getMoreArticleList,
+                onLoadMore = homeViewModel::getMoreArticleList,
+                onSearch = searchViewModel::getArticleListByKeyword,
+                resetState = searchViewModel::resetState,
             )
         }
 
         is ArticlesUiState.InitialLoadError -> {
-            ErrorScreen(onRefresh = viewModel::getArticleList)
+            ErrorScreen(onRefresh = homeViewModel::getArticleList)
         }
 
         else -> {/* 何もしない */
@@ -76,7 +80,7 @@ internal fun HomeRout(
     if (uiEvent is ArticlesUiEvent.Error) {
         ErrorDialog(
             message = (uiEvent as ArticlesUiEvent.Error).message,
-            onDismiss = { viewModel.processedUiEvent(event = uiEvent as ArticlesUiEvent.Error) }
+            onDismiss = { homeViewModel.processedUiEvent(event = uiEvent as ArticlesUiEvent.Error) }
         )
     }
 }
@@ -88,6 +92,8 @@ private fun ArticleList(
     isAppending: Boolean,
     articles: List<ArticleItemUiModel>,
     onLoadMore: () -> Unit,
+    onSearch: (String) -> Unit,
+    resetState: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -126,7 +132,12 @@ private fun ArticleList(
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
     ) {
         items(articles.size) { index ->
-            ArticleItem(article = articles[index], navController = navController)
+            ArticleItem(
+                article = articles[index],
+                onSearch = onSearch,
+                resetState = resetState,
+                navController = navController
+            )
         }
 
         if (isAppending) {
@@ -160,7 +171,9 @@ private fun ArticleListPreview() {
         navController = NavController(LocalContext.current),
         isAppending = false,
         articles = createArticles(),
-        onLoadMore = {}
+        onLoadMore = {},
+        onSearch = {},
+        resetState = {}
     )
 }
 

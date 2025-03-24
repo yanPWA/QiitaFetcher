@@ -69,11 +69,11 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
             repository.getArticleList(page = ARTICLES_PAGE_INITIAL)
         }.onSuccess {
             notifyUiState(state = ArticlesUiState.Fetched(articles = it))
+            isFirstLoad = false
         }.onFailure {
             notifyUiState(ArticlesUiState.InitialLoadError())
             notifyUiEvent(ArticlesUiEvent.Error(message = it.message ?: "エラーが発生しました"))
         }.also {
-            isFirstLoad = false
             isLoading = false
         }
     }

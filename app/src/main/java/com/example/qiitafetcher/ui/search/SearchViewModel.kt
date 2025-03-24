@@ -36,9 +36,6 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
 
     private fun currentState(): SearchUiState = uiState.value
 
-    // 初回取得フラグ
-    private var isFirstLoad = true
-
     // 読み込み重複制御用
     private var isLoading = false
 
@@ -67,9 +64,6 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
      * 特定のキーワードで記事一覧を取得 todo title:Git body:Ruby のような検索ワード
      */
     internal fun getArticleListByKeyword(keyword: String) = viewModelScope.launch {
-        // 初回のみ取得
-        if (!isFirstLoad) return@launch
-
         // 重複制御
         if (isLoading) return@launch
         isLoading = true
@@ -86,10 +80,7 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
         }.onFailure {
             notifyUiState(SearchUiState.InitialLoadError(keyword = keyword))
             notifyUiEvent(SearchUiEvent.Error(message = it.message ?: "エラーが発生しました"))
-        }.also {
-            isLoading = false
-            isFirstLoad = false
-        }
+        }.also { isLoading = false }
     }
 
     /**
@@ -146,9 +137,7 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
                 )
             )
             notifyUiEvent(SearchUiEvent.Error(message = it.message ?: "エラーが発生しました"))
-        }.also {
-            isLoading = false
-        }
+        }.also { isLoading = false }
     }
 
     /**
@@ -180,7 +169,6 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
 
     internal fun resetState() {
         notifyUiState(state = SearchUiState.Init)
-        isFirstLoad = true
     }
 }
 

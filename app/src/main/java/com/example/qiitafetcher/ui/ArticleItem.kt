@@ -39,6 +39,8 @@ import com.example.qiitafetcher.domain.model.Tags
 import com.example.qiitafetcher.ui.UiUtils.showToast
 import com.example.qiitafetcher.ui.detail.DetailRoute
 import com.example.qiitafetcher.ui.detail.navigateToDetail
+import com.example.qiitafetcher.ui.search.SearchListRoute
+import com.example.qiitafetcher.ui.search.navigateToSearchList
 import com.example.qiitafetcher.ui.theme.QFTypography
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import java.net.URLEncoder
@@ -52,6 +54,8 @@ import java.util.Locale
 internal fun ArticleItem(
     modifier: Modifier = Modifier,
     article: ArticleItemUiModel,
+    onSearch: (String) -> Unit,
+    resetState: () -> Unit,
     navController: NavController
 ) {
     Card(
@@ -83,7 +87,12 @@ internal fun ArticleItem(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Tags(tags = article.tags)
+            Tags(
+                navController = navController,
+                tags = article.tags,
+                onSearch = onSearch,
+                resetState = resetState
+            )
             Text(text = "♡ ${article.likesCount}")
         }
     }
@@ -158,25 +167,48 @@ object DateFormatter {
 /** タグ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Tags(tags: List<Tags>?, modifier: Modifier = Modifier) {
+private fun Tags(
+    navController: NavController,
+    tags: List<Tags>?,
+    onSearch: (String) -> Unit,
+    resetState: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     tags ?: return
     FlowRow(
         modifier = Modifier.padding(top = 12.dp)
     ) {
-        // todo tag押下で検索できるように
-        tags.forEach { tag -> Tag(tag = tag) }
+        tags.forEach { tag ->
+            Tag(
+                navController = navController,
+                tag = tag,
+                onSearch = onSearch,
+                resetState = resetState
+            )
+        }
     }
 }
 
 @Composable
-private fun Tag(tag: Tags, modifier: Modifier = Modifier) {
+private fun Tag(
+    navController: NavController,
+    tag: Tags,
+    onSearch: (String) -> Unit,
+    resetState: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .padding(end = 5.dp, bottom = 10.dp)
             .wrapContentWidth()
             .height(20.dp)
             .background(color = Color.Gray, shape = RoundedCornerShape(2.dp))
-            .padding(2.dp),
+            .padding(2.dp)
+            .clickable {
+                onSearch.invoke(tag.name)
+                resetState.invoke()
+                navController.navigateToSearchList(searchListRoute = SearchListRoute(keyword = tag.name))
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -210,7 +242,12 @@ private fun AccountInfoPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun TagPreview() {
-    Tags(tags = createTags())
+    Tags(
+        navController = NavController(LocalContext.current),
+        tags = createTags(),
+        onSearch = {},
+        resetState = {}
+    )
 }
 
 @Preview(showBackground = true)
@@ -218,6 +255,8 @@ private fun TagPreview() {
 internal fun ArticleItemPreview() {
     ArticleItem(
         article = createArticleItem(),
+        onSearch = {},
+        resetState = {},
         navController = NavController(LocalContext.current)
     )
 }
