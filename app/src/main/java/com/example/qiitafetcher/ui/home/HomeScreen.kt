@@ -1,31 +1,26 @@
 package com.example.qiitafetcher.ui.home
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.example.qiitafetcher.R
 import com.example.qiitafetcher.ui.ArticleItem
 import com.example.qiitafetcher.ui.ErrorDialog
+import com.example.qiitafetcher.ui.ErrorScreen
 import com.example.qiitafetcher.ui.LoadingScreen
 import com.example.qiitafetcher.ui.NoArticle
 import com.example.qiitafetcher.ui.createTags
@@ -144,22 +139,6 @@ private fun ArticleList(
             item {
                 LoadingScreen(modifier = modifier.fillMaxWidth())
             }
-        }
-    }
-}
-
-/** エラー画面 */
-@Composable
-private fun ErrorScreen(
-    onRefresh: () -> Unit
-) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        // todo いずれボタンカスタム
-        TextButton(onClick = { onRefresh.invoke() }) {
-            Text(text = stringResource(R.string.retry_message))
         }
     }
 }
