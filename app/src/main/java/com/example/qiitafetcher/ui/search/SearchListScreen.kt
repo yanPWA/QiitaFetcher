@@ -4,13 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -176,22 +171,6 @@ internal fun SearchList(
             .fillMaxSize()
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
     ) {
-        item {
-            IconButton(
-                onClick = {
-                    resetState.invoke()
-                    navController.popBackStack()
-                },
-                modifier = modifier.padding(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    modifier = Modifier.size(30.dp)
-                )
-            }
-        }
-
         items(articles.size) { index ->
             ArticleItem(
                 article = articles[index],

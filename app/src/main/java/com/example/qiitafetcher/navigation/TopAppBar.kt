@@ -2,6 +2,7 @@ package com.example.qiitafetcher.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.qiitafetcher.ui.search.SearchListRoute
 
 /**
@@ -19,7 +21,11 @@ import com.example.qiitafetcher.ui.search.SearchListRoute
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun QFTopAppBar(currentRoute: String, keyword: String) {
+internal fun QFTopAppBar(
+    navController: NavController,
+    currentRoute: String,
+    keyword: String
+) {
     CenterAlignedTopAppBar(
         title = {
             when (currentRoute) {
@@ -36,6 +42,16 @@ internal fun QFTopAppBar(currentRoute: String, keyword: String) {
                 }
 
                 else -> Text(text = "")
+            }
+        },
+        navigationIcon = {
+            if (currentRoute == SearchListRoute().createRoute()) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
             }
         },
         actions = {

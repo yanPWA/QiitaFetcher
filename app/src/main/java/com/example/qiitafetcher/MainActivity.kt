@@ -49,7 +49,11 @@ class MainActivity : ComponentActivity() {
                         if (currentRoute != null) {
                             // todo topBar非表示に遷移する際、遷移前にtopBarが消えるためUIががたつく
                             if (!currentRoute.startsWith("detail/")) {
-                                QFTopAppBar(currentRoute = currentRoute, keyword = keyword)
+                                QFTopAppBar(
+                                    navController = navController,
+                                    currentRoute = currentRoute,
+                                    keyword = keyword
+                                )
                             }
                         }
                     },
