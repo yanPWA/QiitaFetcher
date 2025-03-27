@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -38,7 +39,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.qiitafetcher.R
 import com.example.qiitafetcher.domain.model.Tags
-import com.example.qiitafetcher.ui.UiUtils.showToast
 import com.example.qiitafetcher.ui.detail.DetailRoute
 import com.example.qiitafetcher.ui.detail.navigateToDetail
 import com.example.qiitafetcher.ui.search.SearchListRoute
@@ -58,6 +58,8 @@ internal fun ArticleItem(
     article: ArticleItemUiModel,
     onSearch: (String) -> Unit,
     resetState: () -> Unit,
+    onSave: (ArticleItemUiModel) -> Unit,
+    onDelete: (ArticleItemUiModel) -> Unit,
     navController: NavController
 ) {
     Card(
@@ -76,8 +78,9 @@ internal fun ArticleItem(
         ) {
             AccountInfo(
                 modifier = Modifier,
-                imageUrl = article.imageUrl,
-                accountName = article.userName
+                article = article,
+                onSave = onSave,
+                onDelete = onDelete
             )
 
             PostDate(date = article.updatedAt)
@@ -104,19 +107,18 @@ internal fun ArticleItem(
 @Composable
 private fun AccountInfo(
     modifier: Modifier = Modifier,
-    imageUrl: String?,
-    accountName: String
+    article: ArticleItemUiModel,
+    onSave: (ArticleItemUiModel) -> Unit,
+    onDelete: (ArticleItemUiModel) -> Unit
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val context = LocalContext.current
-
         // todo 表示されない画像データがありそう。要調査（電気通信主任技術者試験（伝搬交換）に挑戦）
         // アイコン
         AsyncImage(
-            model = imageUrl,
+            model = article.imageUrl,
             contentDescription = null,
             placeholder = painterResource(id = R.drawable.noimage),
             modifier = modifier
@@ -131,7 +133,7 @@ private fun AccountInfo(
 
         // アカウント名
         Text(
-            text = "@$accountName",
+            text = "@${article.userName}",
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = QFTypography.labelLarge
@@ -139,11 +141,11 @@ private fun AccountInfo(
 
         Spacer(modifier = modifier.weight(1f))
         Icon(
-            painter = painterResource(id = R.drawable.bookmark),
+            painter = painterResource(id = if (article.isSaved.value) R.drawable.bookmark_added else R.drawable.bookmark),
             contentDescription = null,
             modifier = modifier.clickable {
-                // todo 保存タブリストに追加。一旦仮でトースト表示
-                showToast(context = context, message = "保存しました")
+                if (article.isSaved.value) onDelete.invoke(article) else onSave.invoke(article)
+                article.isSaved.value = !article.isSaved.value
             }
         )
     }
@@ -247,8 +249,9 @@ internal fun NoArticle(modifier: Modifier = Modifier) {
 @Composable
 private fun AccountInfoPreview() {
     AccountInfo(
-        imageUrl = null,
-        accountName = "yanPyanPyanP"
+        article = createArticleItem(),
+        onSave = {},
+        onDelete = {}
     )
 }
 
@@ -270,6 +273,8 @@ internal fun ArticleItemPreview() {
         article = createArticleItem(),
         onSearch = {},
         resetState = {},
+        onSave = {},
+        onDelete = {},
         navController = NavController(LocalContext.current)
     )
 }

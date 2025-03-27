@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -33,6 +34,7 @@ import com.example.qiitafetcher.ui.ErrorDialog
 import com.example.qiitafetcher.ui.LoadingScreen
 import com.example.qiitafetcher.ui.NoArticle
 import com.example.qiitafetcher.ui.createArticleItem
+import com.example.qiitafetcher.ui.save.SaveArticlesViewModel
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -67,7 +69,7 @@ fun NavGraphBuilder.searchList(
         SearchListRout(
             navController = navController,
             backStackEntry = backStackEntry,
-            viewModel = viewModel,
+            searchViewModel = viewModel,
             keyword = keyword
         )
     }
@@ -80,14 +82,15 @@ fun NavGraphBuilder.searchList(
 internal fun SearchListRout(
     navController: NavController,
     backStackEntry: NavBackStackEntry,
-    viewModel: SearchViewModel,
+    searchViewModel: SearchViewModel,
+    saveArticlesViewModel: SaveArticlesViewModel = hiltViewModel(),
     keyword: String
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val uiEvent by viewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
+    val state by searchViewModel.uiState.collectAsStateWithLifecycle()
+    val uiEvent by searchViewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
 
     LaunchedEffect(keyword) {
-        viewModel.getArticleListByKeyword(keyword)
+        searchViewModel.getArticleListByKeyword(keyword)
     }
 
     when (state) {
@@ -97,9 +100,11 @@ internal fun SearchListRout(
                 keyword = keyword,
                 isAppending = (state as SearchUiState.Fetched).isAppending,
                 articles = (state as SearchUiState.Fetched).articles,
-                onSearch = viewModel::getArticleListByKeyword,
-                onLoadMore = viewModel::getMoreArticleListByKeyword,
-                resetState = viewModel::resetState
+                onSearch = searchViewModel::getArticleListByKeyword,
+                onLoadMore = searchViewModel::getMoreArticleListByKeyword,
+                resetState = searchViewModel::resetState,
+                onSave = saveArticlesViewModel::saveArticle,
+                onDelete = saveArticlesViewModel::deleteArticle
             )
         }
 
@@ -118,7 +123,7 @@ internal fun SearchListRout(
             message = (uiEvent as SearchUiEvent.Error).message,
             onDismiss = {
                 navController.popBackStack()
-                viewModel.processedUiEvent(event = uiEvent as SearchUiEvent.Error)
+                searchViewModel.processedUiEvent(event = uiEvent as SearchUiEvent.Error)
             }
         )
     }
@@ -134,6 +139,8 @@ internal fun SearchList(
     onSearch: (String) -> Unit,
     onLoadMore: (String) -> Unit,
     resetState: () -> Unit,
+    onSave: (ArticleItemUiModel) -> Unit,
+    onDelete: (ArticleItemUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -176,6 +183,8 @@ internal fun SearchList(
                 article = articles[index],
                 onSearch = onSearch,
                 resetState = resetState,
+                onSave = onSave,
+                onDelete = onDelete,
                 navController = navController
             )
         }
@@ -215,6 +224,8 @@ private fun SearchListPreview() {
         articles = List(10) { createArticleItem() },
         onSearch = {},
         onLoadMore = {},
-        resetState = {}
+        resetState = {},
+        onSave = {},
+        onDelete = {}
     )
 }

@@ -18,6 +18,7 @@ coil = "2.7.0"
 hilt = "2.54"
 hiltNavigationCompose = "1.2.0"
 ksp = "2.0.0-1.0.21"
+room = "2.6.1"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
@@ -53,6 +54,9 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 dagger-compiler = { group = "com.google.dagger", name = "dagger-compiler", version.ref = "hilt" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+ksp-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -65,3 +69,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 [bundles]
 coil = ["coil-kt", "coil-kt-compose", "coil-kt-svg"]
 hilt = ["hilt", "hilt-navigation-compose", "hilt-core", "dagger-compiler"]
+room = ["room-runtime", "room-ktx"]

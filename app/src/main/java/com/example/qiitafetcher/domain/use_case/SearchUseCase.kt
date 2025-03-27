@@ -3,12 +3,14 @@ package com.example.qiitafetcher.domain.use_case
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.qiitafetcher.data.repository.ArticlesRepository
+import com.example.qiitafetcher.data.repository.SaveArticlesRepository
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 class SearchUseCase @Inject constructor(
     private val repository: ArticlesRepository,
+    private val saveArticlesRepository: SaveArticlesRepository,
     @ApplicationContext private val context: Context
 ) {
     private val sharedPreferences: SharedPreferences =
@@ -50,6 +52,13 @@ class SearchUseCase @Inject constructor(
      */
     internal suspend fun getArticleList(page: Int, query: String): List<ArticleItemUiModel> {
         return repository.getArticleList(page = page, query = query)
+    }
+
+    /**
+     * 記事が保存されているか確認
+     */
+    internal suspend fun isArticleSaved(articleId: String):Boolean {
+        return saveArticlesRepository.isArticleSaved(articleId)
     }
 
     companion object {

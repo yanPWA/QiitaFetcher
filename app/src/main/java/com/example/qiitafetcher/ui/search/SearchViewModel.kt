@@ -1,5 +1,6 @@
 package com.example.qiitafetcher.ui.search
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.qiitafetcher.domain.use_case.SearchUseCase
@@ -75,8 +76,13 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
                 query = keyword
             )
         }.onSuccess {
+            // Roomに存在する記事のisSavedを更新
+            val list = it.map { article ->
+                val isSaved = searchUseCase.isArticleSaved(articleId = article.url)
+                article.copy(isSaved = mutableStateOf(isSaved))
+            }
             addSearchHistory(keyword)
-            notifyUiState(state = SearchUiState.Fetched(articles = it, keyword = keyword))
+            notifyUiState(state = SearchUiState.Fetched(articles = list, keyword = keyword))
         }.onFailure {
             notifyUiState(SearchUiState.InitialLoadError(keyword = keyword))
             notifyUiEvent(SearchUiEvent.Error(message = it.message ?: "エラーが発生しました"))
@@ -107,6 +113,12 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
                 query = keyword
             )
         }.onSuccess {
+            // Roomに存在する記事のisSavedを更新
+            val list = it.map { article ->
+                val isSaved = searchUseCase.isArticleSaved(articleId = article.url)
+                article.copy(isSaved = mutableStateOf(isSaved))
+            }
+
             if (it.isEmpty()) {
                 notifyUiState(
                     state = SearchUiState.Fetched(
@@ -120,7 +132,7 @@ class SearchViewModel @Inject constructor(private val searchUseCase: SearchUseCa
                 notifyUiState(
                     state = SearchUiState.Fetched(
                         page = nextPage,
-                        articles = currentState.articles + it,
+                        articles = currentState.articles + list,
                         isAppending = false,
                         keyword = keyword
                     )

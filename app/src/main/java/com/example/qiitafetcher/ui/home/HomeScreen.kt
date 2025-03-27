@@ -24,6 +24,7 @@ import com.example.qiitafetcher.ui.ErrorScreen
 import com.example.qiitafetcher.ui.LoadingScreen
 import com.example.qiitafetcher.ui.NoArticle
 import com.example.qiitafetcher.ui.createTags
+import com.example.qiitafetcher.ui.save.SaveArticlesViewModel
 import com.example.qiitafetcher.ui.search.SearchViewModel
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -37,7 +38,8 @@ internal fun HomeRout(
     navController: NavController,
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel = hiltViewModel(),
-    searchViewModel: SearchViewModel = hiltViewModel()
+    searchViewModel: SearchViewModel = hiltViewModel(),
+    saveArticlesViewModel: SaveArticlesViewModel = hiltViewModel(),
 ) {
     val state by homeViewModel.uiState.collectAsStateWithLifecycle()
     val uiEvent by homeViewModel.uiEvent.collectAsStateWithLifecycle(initialValue = null)
@@ -55,6 +57,8 @@ internal fun HomeRout(
                 onLoadMore = homeViewModel::getMoreArticleList,
                 onSearch = searchViewModel::getArticleListByKeyword,
                 resetState = searchViewModel::resetState,
+                onSave = saveArticlesViewModel::saveArticle,
+                onDelete = saveArticlesViewModel::deleteArticle
             )
         }
 
@@ -89,6 +93,8 @@ private fun ArticleList(
     onLoadMore: () -> Unit,
     onSearch: (String) -> Unit,
     resetState: () -> Unit,
+    onSave: (ArticleItemUiModel) -> Unit,
+    onDelete: (ArticleItemUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -131,6 +137,8 @@ private fun ArticleList(
                 article = articles[index],
                 onSearch = onSearch,
                 resetState = resetState,
+                onSave = onSave,
+                onDelete = onDelete,
                 navController = navController
             )
         }
@@ -152,11 +160,13 @@ private fun ArticleListPreview() {
         articles = createArticles(),
         onLoadMore = {},
         onSearch = {},
-        resetState = {}
+        resetState = {},
+        onSave = {},
+        onDelete = {}
     )
 }
 
-private fun createArticles(): List<ArticleItemUiModel> {
+internal fun createArticles(): List<ArticleItemUiModel> {
     return List(20) { index ->
         ArticleItemUiModel(
             imageUrl = null,

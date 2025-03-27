@@ -1,7 +1,7 @@
 package com.example.qiitafetcher.data.repository
 
-import com.example.qiitafetcher.domain.model.convertToArticleItemUiModel
 import com.example.qiitafetcher.data.api.QiitaService
+import com.example.qiitafetcher.domain.model.convertToArticleItemUiModel
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

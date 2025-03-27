@@ -1,8 +1,9 @@
 package com.example.qiitafetcher.ui.home
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qiitafetcher.data.repository.ArticlesRepository
+import com.example.qiitafetcher.domain.use_case.HomeUseCase
 import com.example.qiitafetcher.ui.ui_model.ArticleItemUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,7 @@ import javax.inject.Inject
 const val ARTICLES_PAGE_INITIAL = 1
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val repository: ArticlesRepository) :
+class HomeViewModel @Inject constructor(private val homeUseCase: HomeUseCase) :
     ViewModel() {
 
     private val _uiState: MutableStateFlow<ArticlesUiState> = MutableStateFlow(ArticlesUiState.Init)
@@ -66,9 +67,14 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
 
         notifyUiState(state = ArticlesUiState.Fetching)
         runCatching {
-            repository.getArticleList(page = ARTICLES_PAGE_INITIAL)
+            homeUseCase.getArticleList(page = ARTICLES_PAGE_INITIAL)
         }.onSuccess {
-            notifyUiState(state = ArticlesUiState.Fetched(articles = it))
+            // Roomに存在する記事のisSavedを更新
+            val list = it.map { article ->
+                val isSaved = homeUseCase.isArticleSaved(articleId = article.url)
+                article.copy(isSaved = mutableStateOf(isSaved))
+            }
+            notifyUiState(state = ArticlesUiState.Fetched(articles = list))
             isFirstLoad = false
         }.onFailure {
             notifyUiState(ArticlesUiState.InitialLoadError())
@@ -96,8 +102,14 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
             )
         )
         runCatching {
-            repository.getArticleList(page = nextPage)
+            homeUseCase.getArticleList(page = nextPage)
         }.onSuccess {
+            // Roomに存在する記事のisSavedを更新
+            val list = it.map { article ->
+                val isSaved = homeUseCase.isArticleSaved(articleId = article.url)
+                article.copy(isSaved = mutableStateOf(isSaved))
+            }
+
             if (it.isEmpty()) {
                 notifyUiState(
                     state = ArticlesUiState.Fetched(
@@ -110,7 +122,7 @@ class HomeViewModel @Inject constructor(private val repository: ArticlesReposito
                 notifyUiState(
                     state = ArticlesUiState.Fetched(
                         page = nextPage,
-                        articles = currentState.articles + it,
+                        articles = currentState.articles + list,
                         isAppending = false
                     )
                 )

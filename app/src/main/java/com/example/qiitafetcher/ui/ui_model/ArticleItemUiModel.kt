@@ -1,5 +1,7 @@
 package com.example.qiitafetcher.ui.ui_model
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import com.example.qiitafetcher.domain.model.Tags
 import kotlinx.serialization.Serializable
 
@@ -14,5 +16,6 @@ data class ArticleItemUiModel(
     val title: String,
     val tags: List<Tags>?,
     val likesCount: Int,
-    val url: String
+    val url: String,
+    var isSaved: MutableState<Boolean> = mutableStateOf(false)
 )

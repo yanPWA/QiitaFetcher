@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.qiitafetcher.ui.detail.detailScreen
 import com.example.qiitafetcher.ui.home.HomeRout
-import com.example.qiitafetcher.ui.save.SaveListRout
+import com.example.qiitafetcher.ui.save.SaveRout
 import com.example.qiitafetcher.ui.search.SearchRout
 import com.example.qiitafetcher.ui.search.SearchViewModel
 import com.example.qiitafetcher.ui.search.searchList
@@ -30,7 +30,7 @@ fun QFNavHost(
         }
 
         composable(route = BottomNavItems.Save.route) {
-            SaveListRout(navController)
+            SaveRout(navController)
         }
 
         composable(route = BottomNavItems.Search.route) {
