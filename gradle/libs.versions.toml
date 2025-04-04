@@ -19,6 +19,8 @@ hilt = "2.54"
 hiltNavigationCompose = "1.2.0"
 ksp = "2.0.0-1.0.21"
 room = "2.6.1"
+flipper = "0.273.0"
+soloader = "0.10.5"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
@@ -57,6 +59,10 @@ ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devto
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 ksp-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+debug-flipper = { group = "com.facebook.flipper", name = "flipper", version.ref = "flipper" }
+soloader = { group = "com.facebook.soloader", name = "soloader", version.ref = "soloader" }
+release-flipper = { group = "com.facebook.flipper", name = "flipper-noop", version.ref = "flipper" }
+flipper-network-plugin = { group = "com.facebook.flipper", name = "flipper-network-plugin", version.ref = "flipper" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -70,3 +76,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 coil = ["coil-kt", "coil-kt-compose", "coil-kt-svg"]
 hilt = ["hilt", "hilt-navigation-compose", "hilt-core", "dagger-compiler"]
 room = ["room-runtime", "room-ktx"]
+debug-flipper = ["debug-flipper", "soloader", "flipper-network-plugin"]

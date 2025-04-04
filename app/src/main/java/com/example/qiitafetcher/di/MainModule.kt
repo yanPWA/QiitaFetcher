@@ -1,7 +1,9 @@
 package com.example.qiitafetcher.di
 
+import com.example.qiitafetcher.QFApplication
 import com.example.qiitafetcher.data.AppInterceptor
 import com.example.qiitafetcher.data.api.QiitaService
+import com.facebook.flipper.plugins.network.FlipperOkhttpInterceptor
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -27,6 +29,7 @@ object MainModule {
         return OkHttpClient()
             .newBuilder()
             .addInterceptor(AppInterceptor())
+            .addNetworkInterceptor(FlipperOkhttpInterceptor(QFApplication.networkFlipperPlugin))
             .build()
     }
 
@@ -49,7 +52,8 @@ object MainModule {
 
     @Provides
     @Singleton
-    fun provideItemsApi(retrofit: Retrofit): QiitaService.ItemsApi = retrofit.create(QiitaService.ItemsApi::class.java)
+    fun provideItemsApi(retrofit: Retrofit): QiitaService.ItemsApi =
+        retrofit.create(QiitaService.ItemsApi::class.java)
 
     @Provides
     fun provideCoroutineDispatcher(): CoroutineDispatcher {
