@@ -51,13 +51,23 @@ class SearchUseCase @Inject constructor(
      * 特定のキーワードで記事一覧を取得
      */
     internal suspend fun getArticleList(page: Int, query: String): List<ArticleItemUiModel> {
-        return repository.getArticleList(page = page, query = query)
+        // 正規表現にて全角と半角を許可する
+        val machiningQuery = if (query.split(Regex("""[ 　]""")).size > 1) {
+            // 複数キーワードの場合
+            val keywords = query.split(Regex("""[ 　]""")).joinToString(",")
+            "body:$keywords"
+        } else {
+            // 単一キーワードの場合
+            "body:$query"
+        }
+
+        return repository.getArticleList(page = page, query = machiningQuery)
     }
 
     /**
      * 記事が保存されているか確認
      */
-    internal suspend fun isArticleSaved(articleId: String):Boolean {
+    internal suspend fun isArticleSaved(articleId: String): Boolean {
         return saveArticlesRepository.isArticleSaved(articleId)
     }
 
